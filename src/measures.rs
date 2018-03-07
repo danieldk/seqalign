@@ -12,7 +12,7 @@ use ops::{Delete, EditOperations, Insert, Match, Substitute};
 /// * Delete
 /// * Substitute
 /// * Match
-pub fn levensthein<T>(
+pub fn levenshtein<T>(
     insert_cost: usize,
     delete_cost: usize,
     substitute_cost: usize,

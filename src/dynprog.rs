@@ -41,7 +41,7 @@ impl<'a, T> Matrix<'a, T> {
         for source_idx in 1..source_len {
             for target_idx in 0..target_len {
                 matrix.matrix[source_idx][target_idx] = ops.apply(&matrix, source_idx, target_idx)
-                    .expect("No applicatble operation");
+                    .expect("No applicable operation");
             }
         }
 
@@ -91,7 +91,7 @@ impl<'a, T> Matrix<'a, T> {
 #[cfg(test)]
 mod tests {
     use ops::EditOperations;
-    use measures::levensthein;
+    use measures::levenshtein;
 
     use super::Matrix;
 
@@ -102,19 +102,19 @@ mod tests {
         let pen: Vec<char> = "pen".chars().collect();
 
         assert_eq!(
-            Matrix::align(&levensthein(1, 1, 1), &pineapple, &pen).distance(),
+            Matrix::align(&levenshtein(1, 1, 1), &pineapple, &pen).distance(),
             7
         );
         assert_eq!(
-            Matrix::align(&levensthein(1, 1, 1), &pen, &pineapple).distance(),
+            Matrix::align(&levenshtein(1, 1, 1), &pen, &pineapple).distance(),
             7
         );
         assert_eq!(
-            Matrix::align(&levensthein(1, 1, 1), &pineapple, &applet).distance(),
+            Matrix::align(&levenshtein(1, 1, 1), &pineapple, &applet).distance(),
             5
         );
         assert_eq!(
-            Matrix::align(&levensthein(1, 1, 1), &applet, &pen).distance(),
+            Matrix::align(&levenshtein(1, 1, 1), &applet, &pen).distance(),
             4
         );
     }
@@ -125,7 +125,7 @@ mod tests {
         let pineapple: Vec<char> = "pineapple".chars().collect();
         let pen: Vec<char> = "pen".chars().collect();
 
-        let ops = levensthein(1, 1, 1);
+        let ops = levenshtein(1, 1, 1);
 
         assert_eq!(
             edit_script_str(&ops, &pineapple, &pen),
@@ -187,15 +187,15 @@ mod tests {
         let non_empty: Vec<char> = "hello".chars().collect();
 
         assert_eq!(
-            Matrix::align(&levensthein(1, 1, 1), empty, empty).distance(),
+            Matrix::align(&levenshtein(1, 1, 1), empty, empty).distance(),
             0
         );
         assert_eq!(
-            Matrix::align(&levensthein(1, 1, 1), non_empty.as_slice(), empty).distance(),
+            Matrix::align(&levenshtein(1, 1, 1), non_empty.as_slice(), empty).distance(),
             5
         );
         assert_eq!(
-            Matrix::align(&levensthein(1, 1, 1), empty, non_empty.as_slice()).distance(),
+            Matrix::align(&levenshtein(1, 1, 1), empty, non_empty.as_slice()).distance(),
             5
         );
     }
