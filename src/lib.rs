@@ -7,7 +7,7 @@ where
     pub target: &'a [T],
 }
 mod dynprog;
-pub use dynprog::Matrix;
+pub use dynprog::CostMatrix;
 
 pub mod measures;
 

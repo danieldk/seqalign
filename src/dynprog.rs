@@ -1,21 +1,21 @@
 use SeqPair;
 use ops::{EditOperation, EditOperations};
 
-/// Edit distance cost matrix.
-pub struct Matrix<'a, T>
+/// Edit distance cost cost_matrix.
+pub struct CostMatrix<'a, T>
 where
     T: 'a,
 {
     pair: SeqPair<'a, T>,
     ops: &'a EditOperations<T>,
-    matrix: Vec<Vec<usize>>,
+    cost_matrix: Vec<Vec<usize>>,
 }
 
-impl<'a, T> Matrix<'a, T> {
+impl<'a, T> CostMatrix<'a, T> {
     /// Align two sequences.
     ///
-    /// This function aligns two sequences and returns the cost matrix.
-    pub fn align(ops: &'a EditOperations<T>, source: &'a [T], target: &'a [T]) -> Matrix<'a, T> {
+    /// This function aligns two sequences and returns the cost cost_matrix.
+    pub fn align(ops: &'a EditOperations<T>, source: &'a [T], target: &'a [T]) -> CostMatrix<'a, T> {
         let pair = SeqPair {
             source: source.as_ref(),
             target: target.as_ref(),
@@ -24,33 +24,33 @@ impl<'a, T> Matrix<'a, T> {
         let source_len = pair.source.len() + 1;
         let target_len = pair.target.len() + 1;
 
-        let mut matrix = Matrix {
+        let mut cost_matrix = CostMatrix {
             pair,
             ops,
-            matrix: vec![vec![0; target_len]; source_len],
+            cost_matrix: vec![vec![0; target_len]; source_len],
         };
 
-        // Fill first row. This is separated from the rest of the matrix fill
+        // Fill first row. This is separated from the rest of the cost_matrix fill
         // because we do not want to fill cell [0][0].
         for target_idx in 1..target_len {
-            matrix.matrix[0][target_idx] = ops.apply(&matrix, 0, target_idx)
+            cost_matrix.cost_matrix[0][target_idx] = ops.apply(&cost_matrix, 0, target_idx)
                 .expect("No applicable operation");
         }
 
-        // Fill the matrix
+        // Fill the cost_matrix
         for source_idx in 1..source_len {
             for target_idx in 0..target_len {
-                matrix.matrix[source_idx][target_idx] = ops.apply(&matrix, source_idx, target_idx)
+                cost_matrix.cost_matrix[source_idx][target_idx] = ops.apply(&cost_matrix, source_idx, target_idx)
                     .expect("No applicable operation");
             }
         }
 
-        matrix
+        cost_matrix
     }
 
     /// Get the edit distance.
     pub fn distance(&self) -> usize {
-        self.matrix[self.matrix.len() - 1][self.matrix[0].len() - 1]
+        self.cost_matrix[self.cost_matrix.len() - 1][self.cost_matrix[0].len() - 1]
     }
 
     pub fn edit_script(&self) -> Option<Vec<&'a EditOperation<T>>> {
@@ -77,12 +77,12 @@ impl<'a, T> Matrix<'a, T> {
         Some(script)
     }
 
-    /// Get the cost matrix.
-    pub fn matrix(&self) -> &Vec<Vec<usize>> {
-        &self.matrix
+    /// Get the cost cost_matrix.
+    pub fn cost_matrix(&self) -> &Vec<Vec<usize>> {
+        &self.cost_matrix
     }
 
-    /// Get the sequence pair associated with this cost matrix.
+    /// Get the sequence pair associated with this cost cost_matrix.
     pub fn seq_pair(&self) -> &SeqPair<T> {
         &self.pair
     }
@@ -93,7 +93,7 @@ mod tests {
     use ops::EditOperations;
     use measures::levenshtein;
 
-    use super::Matrix;
+    use super::CostMatrix;
 
     #[test]
     fn distance_test() {
@@ -102,19 +102,19 @@ mod tests {
         let pen: Vec<char> = "pen".chars().collect();
 
         assert_eq!(
-            Matrix::align(&levenshtein(1, 1, 1), &pineapple, &pen).distance(),
+            CostMatrix::align(&levenshtein(1, 1, 1), &pineapple, &pen).distance(),
             7
         );
         assert_eq!(
-            Matrix::align(&levenshtein(1, 1, 1), &pen, &pineapple).distance(),
+            CostMatrix::align(&levenshtein(1, 1, 1), &pen, &pineapple).distance(),
             7
         );
         assert_eq!(
-            Matrix::align(&levenshtein(1, 1, 1), &pineapple, &applet).distance(),
+            CostMatrix::align(&levenshtein(1, 1, 1), &pineapple, &applet).distance(),
             5
         );
         assert_eq!(
-            Matrix::align(&levenshtein(1, 1, 1), &applet, &pen).distance(),
+            CostMatrix::align(&levenshtein(1, 1, 1), &applet, &pen).distance(),
             4
         );
     }
@@ -173,7 +173,7 @@ mod tests {
         let seq1 = seq1.as_ref();
         let seq2 = seq2.as_ref();
 
-        Matrix::align(ops, seq1, seq2)
+        CostMatrix::align(ops, seq1, seq2)
             .edit_script()
             .unwrap()
             .iter()
@@ -187,15 +187,15 @@ mod tests {
         let non_empty: Vec<char> = "hello".chars().collect();
 
         assert_eq!(
-            Matrix::align(&levenshtein(1, 1, 1), empty, empty).distance(),
+            CostMatrix::align(&levenshtein(1, 1, 1), empty, empty).distance(),
             0
         );
         assert_eq!(
-            Matrix::align(&levenshtein(1, 1, 1), non_empty.as_slice(), empty).distance(),
+            CostMatrix::align(&levenshtein(1, 1, 1), non_empty.as_slice(), empty).distance(),
             5
         );
         assert_eq!(
-            Matrix::align(&levenshtein(1, 1, 1), empty, non_empty.as_slice()).distance(),
+            CostMatrix::align(&levenshtein(1, 1, 1), empty, non_empty.as_slice()).distance(),
             5
         );
     }

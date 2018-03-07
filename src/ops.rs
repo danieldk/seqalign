@@ -3,7 +3,7 @@
 use std::fmt;
 use std::usize;
 
-use Matrix;
+use CostMatrix;
 
 /// Trait for sequence edit operations.
 pub trait EditOperation<T>: fmt::Debug + fmt::Display {
@@ -12,9 +12,9 @@ pub trait EditOperation<T>: fmt::Debug + fmt::Display {
     /// Returns `None` if the operation cannot be applied. Otherwise, it
     /// returns the cost for the alignment at `source_idx`, `target_idx`
     /// using this operation.
-    fn apply(&self, matrix: &Matrix<T>, source_idx: usize, target_idx: usize) -> Option<usize>;
+    fn apply(&self, cost_matrix: &CostMatrix<T>, source_idx: usize, target_idx: usize) -> Option<usize>;
 
-    /// Return the matrix cell after backtracking from this operation.
+    /// Return the cost_matrix cell after backtracking from this operation.
     ///
     /// Must return `None` if backtracking is not possible (e.g. would lead
     /// to an invalid cell). This method is used for the construction of
@@ -27,9 +27,9 @@ pub trait EditOperation<T>: fmt::Debug + fmt::Display {
 pub struct Delete(pub usize);
 
 impl<T> EditOperation<T> for Delete {
-    fn apply(&self, matrix: &Matrix<T>, source_idx: usize, target_idx: usize) -> Option<usize> {
+    fn apply(&self, cost_matrix: &CostMatrix<T>, source_idx: usize, target_idx: usize) -> Option<usize> {
         if source_idx > 0 {
-            Some(matrix.matrix()[source_idx - 1][target_idx] + self.0)
+            Some(cost_matrix.cost_matrix()[source_idx - 1][target_idx] + self.0)
         } else {
             None
         }
@@ -55,9 +55,9 @@ impl fmt::Display for Delete {
 pub struct Insert(pub usize);
 
 impl<T> EditOperation<T> for Insert {
-    fn apply(&self, matrix: &Matrix<T>, source_idx: usize, target_idx: usize) -> Option<usize> {
+    fn apply(&self, cost_matrix: &CostMatrix<T>, source_idx: usize, target_idx: usize) -> Option<usize> {
         if target_idx > 0 {
-            Some(matrix.matrix()[source_idx][target_idx - 1] + self.0)
+            Some(cost_matrix.cost_matrix()[source_idx][target_idx - 1] + self.0)
         } else {
             None
         }
@@ -86,11 +86,11 @@ impl<T> EditOperation<T> for Match
 where
     T: Eq,
 {
-    fn apply(&self, matrix: &Matrix<T>, source_idx: usize, target_idx: usize) -> Option<usize> {
+    fn apply(&self, cost_matrix: &CostMatrix<T>, source_idx: usize, target_idx: usize) -> Option<usize> {
         if source_idx > 0 && target_idx > 0 {
-            if matrix.seq_pair().source[source_idx - 1] == matrix.seq_pair().target[target_idx - 1]
+            if cost_matrix.seq_pair().source[source_idx - 1] == cost_matrix.seq_pair().target[target_idx - 1]
             {
-                return Some(matrix.matrix()[source_idx - 1][target_idx - 1]);
+                return Some(cost_matrix.cost_matrix()[source_idx - 1][target_idx - 1]);
             }
         }
 
@@ -117,9 +117,9 @@ impl fmt::Display for Match {
 pub struct Substitute(pub usize);
 
 impl<T> EditOperation<T> for Substitute {
-    fn apply(&self, matrix: &Matrix<T>, source_idx: usize, target_idx: usize) -> Option<usize> {
+    fn apply(&self, cost_matrix: &CostMatrix<T>, source_idx: usize, target_idx: usize) -> Option<usize> {
         if source_idx > 0 && target_idx > 0 {
-            Some(matrix.matrix()[source_idx - 1][target_idx - 1] + self.0)
+            Some(cost_matrix.cost_matrix()[source_idx - 1][target_idx - 1] + self.0)
         } else {
             None
         }
@@ -149,10 +149,10 @@ pub struct EditOperations<T>(pub Vec<Box<EditOperation<T>>>);
 
 impl<T> EditOperations<T> {
     /// Apply the best edit operation for the given cell.
-    pub fn apply(&self, matrix: &Matrix<T>, source_idx: usize, target_idx: usize) -> Option<usize> {
+    pub fn apply(&self, cost_matrix: &CostMatrix<T>, source_idx: usize, target_idx: usize) -> Option<usize> {
         self.0
             .iter()
-            .filter_map(|op| op.apply(matrix, source_idx, target_idx))
+            .filter_map(|op| op.apply(cost_matrix, source_idx, target_idx))
             .min()
     }
 
@@ -160,13 +160,13 @@ impl<T> EditOperations<T> {
     /// given cell.
     pub fn backtrack(
         &self,
-        matrix: &Matrix<T>,
+        cost_matrix: &CostMatrix<T>,
         source_idx: usize,
         target_idx: usize,
     ) -> Option<&EditOperation<T>> {
         for op in &self.0 {
-            if let Some(cost) = op.apply(matrix, source_idx, target_idx) {
-                if cost == matrix.matrix()[source_idx][target_idx] {
+            if let Some(cost) = op.apply(cost_matrix, source_idx, target_idx) {
+                if cost == cost_matrix.cost_matrix()[source_idx][target_idx] {
                     return Some(op.as_ref());
                 }
             }
