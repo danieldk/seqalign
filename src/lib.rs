@@ -3,7 +3,7 @@
 extern crate lazy_static;
 
 mod dynprog;
-pub use dynprog::Alignment;
+pub use dynprog::{Align, Alignment};
 
 pub mod measures;
 
