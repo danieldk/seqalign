@@ -102,6 +102,116 @@ where
     }
 }
 
+/// Levenshtein-Damerau distance.
+///
+/// Levenshtein-Damerau distance uses the following operations:
+///
+/// * Insert
+/// * Delete
+/// * Substitute
+/// * Match
+/// * Transpose (*xy* -> *yx*)
+#[derive(Clone, Debug)]
+pub struct LevenshteinDamerau {
+    ops: [LevenshteinDamerauOp; 5],
+}
+
+/// Construct a Levenshtein-Damerau measure with the associated insertion,
+/// deletion, substitution, and transposition cost.
+impl LevenshteinDamerau {
+    pub fn new(
+        insert_cost: usize,
+        delete_cost: usize,
+        substitute_cost: usize,
+        transpose_cost: usize,
+    ) -> Self {
+        use self::LevenshteinDamerauOp::*;
+
+        LevenshteinDamerau {
+            ops: [
+                Insert(insert_cost),
+                Delete(delete_cost),
+                Match,
+                Substitute(substitute_cost),
+                Transpose(transpose_cost),
+            ],
+        }
+    }
+}
+
+impl<T> Measure<T> for LevenshteinDamerau
+where
+    T: Eq,
+{
+    type Operation = LevenshteinDamerauOp;
+
+    fn operations(&self) -> &[Self::Operation] {
+        &self.ops
+    }
+}
+
+/// Levenshtein operation with associated cost.
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum LevenshteinDamerauOp {
+    Insert(usize),
+    Delete(usize),
+    Match,
+    Substitute(usize),
+    Transpose(usize),
+}
+
+impl<T> Operation<T> for LevenshteinDamerauOp
+where
+    T: Eq,
+{
+    fn backtrack(
+        &self,
+        seq_pair: &SeqPair<T>,
+        source_idx: usize,
+        target_idx: usize,
+    ) -> Option<(usize, usize)> {
+        use self::LevenshteinDamerauOp::*;
+
+        match *self {
+            Delete(cost) => archetype::Delete(cost).backtrack(seq_pair, source_idx, target_idx),
+            Insert(cost) => archetype::Insert(cost).backtrack(seq_pair, source_idx, target_idx),
+            Match => archetype::Match.backtrack(seq_pair, source_idx, target_idx),
+            Substitute(cost) => {
+                archetype::Substitute(cost).backtrack(seq_pair, source_idx, target_idx)
+            }
+            Transpose(cost) => {
+                archetype::Transpose(cost).backtrack(seq_pair, source_idx, target_idx)
+            }
+        }
+    }
+
+    fn cost(
+        &self,
+        seq_pair: &SeqPair<T>,
+        cost_matrix: &Vec<Vec<usize>>,
+        source_idx: usize,
+        target_idx: usize,
+    ) -> Option<usize> {
+        use self::LevenshteinDamerauOp::*;
+
+        match *self {
+            Delete(cost) => {
+                archetype::Delete(cost).cost(seq_pair, cost_matrix, source_idx, target_idx)
+            }
+            Insert(cost) => {
+                archetype::Insert(cost).cost(seq_pair, cost_matrix, source_idx, target_idx)
+            }
+            Match => archetype::Match.cost(seq_pair, cost_matrix, source_idx, target_idx),
+            Substitute(cost) => {
+                archetype::Substitute(cost).cost(seq_pair, cost_matrix, source_idx, target_idx)
+            }
+            Transpose(cost) => {
+                archetype::Transpose(cost).cost(seq_pair, cost_matrix, source_idx, target_idx)
+            }
+        }
+    }
+}
+
 /// Longest common subsequence (LCS) alignment.
 ///
 /// This measure uses the following edit operations:
@@ -192,31 +302,67 @@ where
 #[cfg(test)]
 mod tests {
     use Measure;
-    use measures::{Levenshtein, LCS};
+    use measures::{Levenshtein, LevenshteinDamerau, LCS};
 
     use CostMatrix;
 
-    struct TestCase(&'static str, &'static str, usize, usize);
+    struct TestCase {
+        source: &'static str,
+        target: &'static str,
+        levenshtein_dist: usize,
+        levenshtein_damerau_dist: usize,
+        lcs_dist: usize,
+    }
+
+    impl TestCase {
+        fn new(
+            source: &'static str,
+            target: &'static str,
+            levenshtein_dist: usize,
+            levenshtein_damerau_dist: usize,
+            lcs_dist: usize,
+        ) -> Self {
+            TestCase {
+                source,
+                target,
+                levenshtein_dist,
+                levenshtein_damerau_dist,
+                lcs_dist,
+            }
+        }
+    }
 
     lazy_static! {
         static ref TESTCASES: Vec<TestCase> = vec![
-            TestCase("pineapple", "", 9, 9),
-            TestCase("", "pineapple", 9, 9),
-            TestCase("pineapple", "pen", 7, 8),
-            TestCase("pen", "pineapple", 7, 8),
-            TestCase("pineapple", "applet", 5, 5),
-            TestCase("applet", "pen", 4, 5),
+            TestCase::new("pineapple", "", 9, 9, 9),
+            TestCase::new("", "pineapple", 9, 9, 9),
+            TestCase::new("pineapple", "pen", 7, 7, 8),
+            TestCase::new("pen", "pineapple", 7, 7, 8),
+            TestCase::new("pineapple", "applet", 5, 5, 5),
+            TestCase::new("applet", "pen", 4, 4, 5),
+            TestCase::new("tpyo", "typo", 2, 1, 2),
         ];
     }
 
     #[test]
     pub fn test_lcs() {
-        run_testcases(|| LCS::new(1, 1), |testcase| testcase.3);
+        run_testcases(|| LCS::new(1, 1), |testcase| testcase.lcs_dist);
     }
 
     #[test]
     pub fn test_levenshtein() {
-        run_testcases(|| Levenshtein::new(1, 1, 1), |testcase| testcase.2);
+        run_testcases(
+            || Levenshtein::new(1, 1, 1),
+            |testcase| testcase.levenshtein_dist,
+        );
+    }
+
+    #[test]
+    pub fn test_levenshtein_damerau() {
+        run_testcases(
+            || LevenshteinDamerau::new(1, 1, 1, 1),
+            |testcase| testcase.levenshtein_damerau_dist,
+        );
     }
 
     fn run_testcases<MF, M, DF>(measure: MF, distance: DF)
@@ -226,8 +372,8 @@ mod tests {
         DF: Fn(&TestCase) -> usize,
     {
         for testcase in TESTCASES.iter() {
-            let source: Vec<char> = testcase.0.chars().collect();
-            let target: Vec<char> = testcase.1.chars().collect();
+            let source: Vec<char> = testcase.source.chars().collect();
+            let target: Vec<char> = testcase.target.chars().collect();
             assert_eq!(
                 distance(testcase),
                 CostMatrix::align(measure(), &source, &target).distance()

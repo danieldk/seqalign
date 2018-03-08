@@ -105,6 +105,7 @@ impl<T> Operation<T> for Match {
     {
         let (from_source_idx, from_target_idx) = self.backtrack(seq_pair, source_idx, target_idx)?;
         let orig_cost = cost_matrix[from_source_idx][from_target_idx];
+
         if seq_pair.source[from_source_idx] == seq_pair.target[from_target_idx] {
             Some(orig_cost)
         } else {
@@ -144,5 +145,46 @@ impl<T> Operation<T> for Substitute {
         let (from_source_idx, from_target_idx) = self.backtrack(seq_pair, source_idx, target_idx)?;
         let orig_cost = cost_matrix[from_source_idx][from_target_idx];
         Some(orig_cost + self.0)
+    }
+}
+
+/// Transpose operation with associated cost.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Transpose(pub usize);
+
+impl<T> Operation<T> for Transpose {
+    fn backtrack(
+        &self,
+        _seq_pair: &SeqPair<T>,
+        source_idx: usize,
+        target_idx: usize,
+    ) -> Option<(usize, usize)> {
+        if source_idx > 1 && target_idx > 1 {
+            Some((source_idx - 2, target_idx - 2))
+        } else {
+            None
+        }
+    }
+
+    fn cost(
+        &self,
+        seq_pair: &SeqPair<T>,
+        cost_matrix: &Vec<Vec<usize>>,
+        source_idx: usize,
+        target_idx: usize,
+    ) -> Option<usize>
+    where
+        T: Eq,
+    {
+        let (from_source_idx, from_target_idx) = self.backtrack(seq_pair, source_idx, target_idx)?;
+        let orig_cost = cost_matrix[from_source_idx][from_target_idx];
+
+        if seq_pair.source[from_source_idx] == seq_pair.target[from_target_idx + 1]
+            && seq_pair.source[from_source_idx + 1] == seq_pair.target[from_target_idx]
+        {
+            Some(orig_cost + self.0)
+        } else {
+            None
+        }
     }
 }
