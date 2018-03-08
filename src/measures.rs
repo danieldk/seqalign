@@ -2,7 +2,9 @@
 //!
 //! This module provides some predefined sequence distance measures.
 
-use {Measure, Operation, SeqPair};
+use {Measure, SeqPair};
+use op::Operation;
+use op::archetype;
 
 /// Levenshtein distance.
 ///
@@ -60,33 +62,19 @@ where
 {
     fn backtrack(
         &self,
-        _seq_pair: &SeqPair<T>,
+        seq_pair: &SeqPair<T>,
         source_idx: usize,
         target_idx: usize,
     ) -> Option<(usize, usize)> {
         use self::LevenshteinOp::*;
 
         match *self {
-            Delete(_) => if source_idx > 0 {
-                Some((source_idx - 1, target_idx))
-            } else {
-                None
-            },
-            Insert(_) => if target_idx > 0 {
-                Some((source_idx, target_idx - 1))
-            } else {
-                None
-            },
-            Match => if source_idx > 0 && target_idx > 0 {
-                Some((source_idx - 1, target_idx - 1))
-            } else {
-                None
-            },
-            Substitute(_) => if source_idx > 0 && target_idx > 0 {
-                Some((source_idx - 1, target_idx - 1))
-            } else {
-                None
-            },
+            Delete(cost) => archetype::Delete(cost).backtrack(seq_pair, source_idx, target_idx),
+            Insert(cost) => archetype::Insert(cost).backtrack(seq_pair, source_idx, target_idx),
+            Match => archetype::Match.backtrack(seq_pair, source_idx, target_idx),
+            Substitute(cost) => {
+                archetype::Substitute(cost).backtrack(seq_pair, source_idx, target_idx)
+            }
         }
     }
 
@@ -99,20 +87,17 @@ where
     ) -> Option<usize> {
         use self::LevenshteinOp::*;
 
-        let (from_source_idx, from_target_idx) = self.backtrack(seq_pair, source_idx, target_idx)?;
-        let orig_cost = cost_matrix[from_source_idx][from_target_idx];
-
         match *self {
-            Delete(cost) => Some(orig_cost + cost),
-            Insert(cost) => Some(orig_cost + cost),
-            Match => {
-                if seq_pair.source[from_source_idx] == seq_pair.target[from_target_idx] {
-                    Some(orig_cost)
-                } else {
-                    None
-                }
+            Delete(cost) => {
+                archetype::Delete(cost).cost(seq_pair, cost_matrix, source_idx, target_idx)
             }
-            Substitute(cost) => Some(orig_cost + cost),
+            Insert(cost) => {
+                archetype::Insert(cost).cost(seq_pair, cost_matrix, source_idx, target_idx)
+            }
+            Match => archetype::Match.cost(seq_pair, cost_matrix, source_idx, target_idx),
+            Substitute(cost) => {
+                archetype::Substitute(cost).cost(seq_pair, cost_matrix, source_idx, target_idx)
+            }
         }
     }
 }

@@ -3,13 +3,12 @@ pub use dynprog::CostMatrix;
 
 pub mod measures;
 
-mod op;
-pub use op::{IndexedOperation, Operation};
+pub mod op;
 
 /// Trait for edit distance measures.
 pub trait Measure<T> {
     /// The edit operations associated with the measure.
-    type Operation: Operation<T>;
+    type Operation: op::Operation<T>;
 
     /// Get a slice with the measure's operations. Typically, this contains
     /// all the enum variants of the associated type `Operation`.
