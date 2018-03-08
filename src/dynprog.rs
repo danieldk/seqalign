@@ -2,7 +2,7 @@ use {Measure, SeqPair};
 use op::{Backtrack, BestOperation, IndexedOperation, Operation};
 
 /// Edit distance cost matrix.
-pub struct CostMatrix<'a, M, T>
+pub struct Alignment<'a, M, T>
 where
     M: Measure<T>,
     T: Eq + 'a,
@@ -12,7 +12,7 @@ where
     cost_matrix: Vec<Vec<usize>>,
 }
 
-impl<'a, M, T> CostMatrix<'a, M, T>
+impl<'a, M, T> Alignment<'a, M, T>
 where
     M: Measure<T>,
     T: Eq,
@@ -50,7 +50,7 @@ where
             }
         }
 
-        CostMatrix {
+        Alignment {
             measure,
             pair,
             cost_matrix,
@@ -110,7 +110,7 @@ mod tests {
     use measures::Levenshtein;
     use measures::LevenshteinOp::*;
 
-    use super::CostMatrix;
+    use super::Alignment;
 
     #[test]
     fn distance_test() {
@@ -119,19 +119,19 @@ mod tests {
         let pen: Vec<char> = "pen".chars().collect();
 
         assert_eq!(
-            CostMatrix::align(Levenshtein::new(1, 1, 1), &pineapple, &pen).distance(),
+            Alignment::align(Levenshtein::new(1, 1, 1), &pineapple, &pen).distance(),
             7
         );
         assert_eq!(
-            CostMatrix::align(Levenshtein::new(1, 1, 1), &pen, &pineapple).distance(),
+            Alignment::align(Levenshtein::new(1, 1, 1), &pen, &pineapple).distance(),
             7
         );
         assert_eq!(
-            CostMatrix::align(Levenshtein::new(1, 1, 1), &pineapple, &applet).distance(),
+            Alignment::align(Levenshtein::new(1, 1, 1), &pineapple, &applet).distance(),
             5
         );
         assert_eq!(
-            CostMatrix::align(Levenshtein::new(1, 1, 1), &applet, &pen).distance(),
+            Alignment::align(Levenshtein::new(1, 1, 1), &applet, &pen).distance(),
             4
         );
     }
@@ -156,7 +156,7 @@ mod tests {
                 IndexedOperation::new(Delete(1), 7, 3),
                 IndexedOperation::new(Delete(1), 8, 3),
             ],
-            CostMatrix::align(ops.clone(), &pineapple, &pen).edit_script()
+            Alignment::align(ops.clone(), &pineapple, &pen).edit_script()
         );
 
         assert_eq!(
@@ -171,7 +171,7 @@ mod tests {
                 IndexedOperation::new(Insert(1), 3, 7),
                 IndexedOperation::new(Insert(1), 3, 8),
             ],
-            CostMatrix::align(ops.clone(), &pen, &pineapple).edit_script()
+            Alignment::align(ops.clone(), &pen, &pineapple).edit_script()
         );
 
         assert_eq!(
@@ -187,7 +187,7 @@ mod tests {
                 IndexedOperation::new(Match, 8, 4),
                 IndexedOperation::new(Insert(1), 9, 5),
             ],
-            CostMatrix::align(ops.clone(), &pineapple, &applet).edit_script()
+            Alignment::align(ops.clone(), &pineapple, &applet).edit_script()
         );
     }
 
@@ -197,15 +197,15 @@ mod tests {
         let non_empty: Vec<char> = "hello".chars().collect();
 
         assert_eq!(
-            CostMatrix::align(Levenshtein::new(1, 1, 1), empty, empty).distance(),
+            Alignment::align(Levenshtein::new(1, 1, 1), empty, empty).distance(),
             0
         );
         assert_eq!(
-            CostMatrix::align(Levenshtein::new(1, 1, 1), non_empty.as_slice(), empty).distance(),
+            Alignment::align(Levenshtein::new(1, 1, 1), non_empty.as_slice(), empty).distance(),
             5
         );
         assert_eq!(
-            CostMatrix::align(Levenshtein::new(1, 1, 1), empty, non_empty.as_slice()).distance(),
+            Alignment::align(Levenshtein::new(1, 1, 1), empty, non_empty.as_slice()).distance(),
             5
         );
     }

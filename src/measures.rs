@@ -304,7 +304,7 @@ mod tests {
     use Measure;
     use measures::{Levenshtein, LevenshteinDamerau, LCS};
 
-    use CostMatrix;
+    use Alignment;
 
     struct TestCase {
         source: &'static str,
@@ -376,7 +376,7 @@ mod tests {
             let target: Vec<char> = testcase.target.chars().collect();
             assert_eq!(
                 distance(testcase),
-                CostMatrix::align(measure(), &source, &target).distance()
+                Alignment::align(measure(), &source, &target).distance()
             )
         }
     }
