@@ -3,7 +3,7 @@
 extern crate lazy_static;
 
 mod dynprog;
-pub use dynprog::CostMatrix;
+pub use dynprog::Alignment;
 
 pub mod measures;
 
