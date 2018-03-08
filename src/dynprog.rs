@@ -1,26 +1,23 @@
 use {Measure, SeqPair};
 use op::{Backtrack, BestOperation, IndexedOperation, Operation};
 
-/// Edit distance cost matrix.
-pub struct Alignment<'a, M, T>
-where
-    M: Measure<T>,
-    T: Eq + 'a,
-{
-    measure: M,
-    pair: SeqPair<'a, T>,
-    cost_matrix: Vec<Vec<usize>>,
-}
-
-impl<'a, M, T> Alignment<'a, M, T>
+pub trait Align<'a, M, T>
 where
     M: Measure<T>,
     T: Eq,
 {
     /// Align two sequences.
     ///
-    /// This function aligns two sequences and returns the cost matrix.
-    pub fn align(measure: M, source: &'a [T], target: &'a [T]) -> Self {
+    /// This function aligns two sequences and returns the alignment.
+    fn align(&'a self, source: &'a [T], target: &'a [T]) -> Alignment<'a, M, T>;
+}
+
+impl<'a, M, T> Align<'a, M, T> for M
+where
+    M: Measure<T>,
+    T: Eq,
+{
+    fn align(&'a self, source: &'a [T], target: &'a [T]) -> Alignment<'a, M, T> {
         let pair = SeqPair {
             source: source.as_ref(),
             target: target.as_ref(),
@@ -34,8 +31,7 @@ where
         // Fill first row. This is separated from the rest of the matrix fill
         // because we do not want to fill cell [0][0].
         for target_idx in 1..target_len {
-            cost_matrix[0][target_idx] = measure
-                .best_operation(&pair, &cost_matrix, 0, target_idx)
+            cost_matrix[0][target_idx] = self.best_operation(&pair, &cost_matrix, 0, target_idx)
                 .expect("No applicable operation")
                 .1;
         }
@@ -43,20 +39,37 @@ where
         // Fill the matrix
         for source_idx in 1..source_len {
             for target_idx in 0..target_len {
-                cost_matrix[source_idx][target_idx] = measure
-                    .best_operation(&pair, &cost_matrix, source_idx, target_idx)
-                    .expect("No applicable operation")
-                    .1;
+                cost_matrix[source_idx][target_idx] =
+                    self.best_operation(&pair, &cost_matrix, source_idx, target_idx)
+                        .expect("No applicable operation")
+                        .1;
             }
         }
 
         Alignment {
-            measure,
+            measure: self,
             pair,
             cost_matrix,
         }
     }
+}
 
+/// Edit distance cost matrix.
+pub struct Alignment<'a, M, T>
+where
+    M: 'a + Measure<T>,
+    T: 'a + Eq,
+{
+    measure: &'a M,
+    pair: SeqPair<'a, T>,
+    cost_matrix: Vec<Vec<usize>>,
+}
+
+impl<'a, M, T> Alignment<'a, M, T>
+where
+    M: Measure<T>,
+    T: Eq,
+{
     /// Get the edit distance.
     pub fn distance(&self) -> usize {
         self.cost_matrix[self.cost_matrix.len() - 1][self.cost_matrix[0].len() - 1]
@@ -110,7 +123,7 @@ mod tests {
     use measures::Levenshtein;
     use measures::LevenshteinOp::*;
 
-    use super::Alignment;
+    use super::Align;
 
     #[test]
     fn distance_test() {
@@ -118,22 +131,12 @@ mod tests {
         let pineapple: Vec<char> = "pineapple".chars().collect();
         let pen: Vec<char> = "pen".chars().collect();
 
-        assert_eq!(
-            Alignment::align(Levenshtein::new(1, 1, 1), &pineapple, &pen).distance(),
-            7
-        );
-        assert_eq!(
-            Alignment::align(Levenshtein::new(1, 1, 1), &pen, &pineapple).distance(),
-            7
-        );
-        assert_eq!(
-            Alignment::align(Levenshtein::new(1, 1, 1), &pineapple, &applet).distance(),
-            5
-        );
-        assert_eq!(
-            Alignment::align(Levenshtein::new(1, 1, 1), &applet, &pen).distance(),
-            4
-        );
+        let levenshtein = Levenshtein::new(1, 1, 1);
+
+        assert_eq!(levenshtein.align(&pineapple, &pen).distance(), 7);
+        assert_eq!(levenshtein.align(&pen, &pineapple).distance(), 7);
+        assert_eq!(levenshtein.align(&pineapple, &applet).distance(), 5);
+        assert_eq!(levenshtein.align(&applet, &pen).distance(), 4);
     }
 
     #[test]
@@ -142,7 +145,7 @@ mod tests {
         let pineapple: Vec<char> = "pineapple".chars().collect();
         let pen: Vec<char> = "pen".chars().collect();
 
-        let ops = Levenshtein::new(1, 1, 1);
+        let levenshtein = Levenshtein::new(1, 1, 1);
 
         assert_eq!(
             vec![
@@ -156,7 +159,7 @@ mod tests {
                 IndexedOperation::new(Delete(1), 7, 3),
                 IndexedOperation::new(Delete(1), 8, 3),
             ],
-            Alignment::align(ops.clone(), &pineapple, &pen).edit_script()
+            levenshtein.align(&pineapple, &pen).edit_script()
         );
 
         assert_eq!(
@@ -171,7 +174,7 @@ mod tests {
                 IndexedOperation::new(Insert(1), 3, 7),
                 IndexedOperation::new(Insert(1), 3, 8),
             ],
-            Alignment::align(ops.clone(), &pen, &pineapple).edit_script()
+            levenshtein.align(&pen, &pineapple).edit_script()
         );
 
         assert_eq!(
@@ -187,7 +190,7 @@ mod tests {
                 IndexedOperation::new(Match, 8, 4),
                 IndexedOperation::new(Insert(1), 9, 5),
             ],
-            Alignment::align(ops.clone(), &pineapple, &applet).edit_script()
+            levenshtein.align(&pineapple, &applet).edit_script()
         );
     }
 
@@ -196,17 +199,10 @@ mod tests {
         let empty: &[char] = &[];
         let non_empty: Vec<char> = "hello".chars().collect();
 
-        assert_eq!(
-            Alignment::align(Levenshtein::new(1, 1, 1), empty, empty).distance(),
-            0
-        );
-        assert_eq!(
-            Alignment::align(Levenshtein::new(1, 1, 1), non_empty.as_slice(), empty).distance(),
-            5
-        );
-        assert_eq!(
-            Alignment::align(Levenshtein::new(1, 1, 1), empty, non_empty.as_slice()).distance(),
-            5
-        );
+        let levenshtein = Levenshtein::new(1, 1, 1);
+
+        assert_eq!(levenshtein.align(empty, empty).distance(), 0);
+        assert_eq!(levenshtein.align(non_empty.as_slice(), empty).distance(), 5);
+        assert_eq!(levenshtein.align(empty, non_empty.as_slice()).distance(), 5);
     }
 }
