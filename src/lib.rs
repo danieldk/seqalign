@@ -1,3 +1,5 @@
+extern crate ndarray;
+
 #[cfg(test)]
 #[macro_use]
 extern crate lazy_static;

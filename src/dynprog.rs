@@ -1,3 +1,5 @@
+use ndarray::{Array2, ArrayView2};
+
 use {Measure, SeqPair};
 use op::{Backtrack, BestOperation, IndexedOperation, Operation};
 
@@ -26,21 +28,22 @@ where
         let source_len = pair.source.len() + 1;
         let target_len = pair.target.len() + 1;
 
-        let mut cost_matrix = vec![vec![0; target_len]; source_len];
+        let mut cost_matrix = Array2::zeros((source_len, target_len));
 
         // Fill first row. This is separated from the rest of the matrix fill
         // because we do not want to fill cell [0][0].
         for target_idx in 1..target_len {
-            cost_matrix[0][target_idx] = self.best_operation(&pair, &cost_matrix, 0, target_idx)
-                .expect("No applicable operation")
-                .1;
+            cost_matrix[(0, target_idx)] =
+                self.best_operation(&pair, cost_matrix.view(), 0, target_idx)
+                    .expect("No applicable operation")
+                    .1;
         }
 
         // Fill the matrix
         for source_idx in 1..source_len {
             for target_idx in 0..target_len {
-                cost_matrix[source_idx][target_idx] =
-                    self.best_operation(&pair, &cost_matrix, source_idx, target_idx)
+                cost_matrix[(source_idx, target_idx)] =
+                    self.best_operation(&pair, cost_matrix.view(), source_idx, target_idx)
                         .expect("No applicable operation")
                         .1;
             }
@@ -62,7 +65,7 @@ where
 {
     measure: &'a M,
     pair: SeqPair<'a, T>,
-    cost_matrix: Vec<Vec<usize>>,
+    cost_matrix: Array2<usize>,
 }
 
 impl<'a, M, T> Alignment<'a, M, T>
@@ -72,7 +75,8 @@ where
 {
     /// Get the edit distance.
     pub fn distance(&self) -> usize {
-        self.cost_matrix[self.cost_matrix.len() - 1][self.cost_matrix[0].len() - 1]
+        let shape = self.cost_matrix.shape();
+        self.cost_matrix[(shape[0] - 1, shape[1] - 1)]
     }
 
     /// Return the script of edit operations to rewrite the source sequence
@@ -84,7 +88,7 @@ where
 
         while let Some(op) =
             self.measure
-                .backtrack(&self.pair, &self.cost_matrix, source_idx, target_idx)
+                .backtrack(&self.pair, self.cost_matrix.view(), source_idx, target_idx)
         {
             let (new_source_idx, new_target_idx) = op.backtrack(&self.pair, source_idx, target_idx)
                 .expect("Cannot backtrack");
@@ -107,8 +111,8 @@ where
     }
 
     /// Get the cost matrix.
-    pub fn cost_matrix(&self) -> &Vec<Vec<usize>> {
-        &self.cost_matrix
+    pub fn cost_matrix(&self) -> ArrayView2<usize> {
+        self.cost_matrix.view()
     }
 
     /// Get the sequence pair associated with this cost matrix.

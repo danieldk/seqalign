@@ -1,5 +1,7 @@
 //! Edit operations.
 
+use ndarray::ArrayView2;
+
 use std::fmt::Debug;
 
 use {Measure, SeqPair};
@@ -28,7 +30,7 @@ pub trait Operation<T>: Clone + Debug + Eq {
     fn cost(
         &self,
         seq_pair: &SeqPair<T>,
-        cost_matrix: &Vec<Vec<usize>>,
+        cost_matrix: ArrayView2<usize>,
         source_idx: usize,
         target_idx: usize,
     ) -> Option<usize>
@@ -91,7 +93,7 @@ pub(crate) trait Backtrack<T> {
     fn backtrack(
         &self,
         seq_pair: &SeqPair<T>,
-        cost_matrix: &Vec<Vec<usize>>,
+        cost_matrix: ArrayView2<usize>,
         source_idx: usize,
         target_idx: usize,
     ) -> Option<Self::Operation>
@@ -110,7 +112,7 @@ where
     fn backtrack(
         &self,
         seq_pair: &SeqPair<T>,
-        cost_matrix: &Vec<Vec<usize>>,
+        cost_matrix: ArrayView2<usize>,
         source_idx: usize,
         target_idx: usize,
     ) -> Option<Self::Operation>
@@ -119,7 +121,7 @@ where
     {
         for op in self.operations() {
             if let Some(cost) = op.cost(seq_pair, cost_matrix, source_idx, target_idx) {
-                if cost == cost_matrix[source_idx][target_idx] {
+                if cost == cost_matrix[(source_idx, target_idx)] {
                     return Some(op.clone());
                 }
             }
@@ -135,7 +137,7 @@ pub(crate) trait BestOperation<T> {
     fn best_operation(
         &self,
         seq_pair: &SeqPair<T>,
-        cost_matrix: &Vec<Vec<usize>>,
+        cost_matrix: ArrayView2<usize>,
         source_idx: usize,
         target_idx: usize,
     ) -> Option<(Self::Operation, usize)>
@@ -157,7 +159,7 @@ where
     fn best_operation(
         &self,
         seq_pair: &SeqPair<T>,
-        cost_matrix: &Vec<Vec<usize>>,
+        cost_matrix: ArrayView2<usize>,
         source_idx: usize,
         target_idx: usize,
     ) -> Option<(Self::Operation, usize)>

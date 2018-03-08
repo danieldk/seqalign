@@ -2,6 +2,8 @@
 //!
 //! This module provides some predefined sequence distance measures.
 
+use ndarray::ArrayView2;
+
 use {Measure, SeqPair};
 use op::Operation;
 use op::archetype;
@@ -81,7 +83,7 @@ where
     fn cost(
         &self,
         seq_pair: &SeqPair<T>,
-        cost_matrix: &Vec<Vec<usize>>,
+        cost_matrix: ArrayView2<usize>,
         source_idx: usize,
         target_idx: usize,
     ) -> Option<usize> {
@@ -188,7 +190,7 @@ where
     fn cost(
         &self,
         seq_pair: &SeqPair<T>,
-        cost_matrix: &Vec<Vec<usize>>,
+        cost_matrix: ArrayView2<usize>,
         source_idx: usize,
         target_idx: usize,
     ) -> Option<usize> {
@@ -281,7 +283,7 @@ where
     fn cost(
         &self,
         seq_pair: &SeqPair<T>,
-        cost_matrix: &Vec<Vec<usize>>,
+        cost_matrix: ArrayView2<usize>,
         source_idx: usize,
         target_idx: usize,
     ) -> Option<usize> {
