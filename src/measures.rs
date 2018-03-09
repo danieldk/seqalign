@@ -16,7 +16,7 @@ macro_rules! op_mapping {
 }
 
 macro_rules! backtrack_fun {
-    ( $op_type:ident, { $($variant:pat => $archetype:expr),* } ) => {    
+    ( $op_type:ident, { $($variant:pat => $archetype:expr),* } ) => {
         fn backtrack(&self, seq_pair: &SeqPair<T>, source_idx: usize,
                 target_idx: usize) -> Option<(usize, usize)> {
             use self::$op_type::*;
@@ -160,57 +160,13 @@ pub enum LevenshteinDamerauOp {
     Transpose(usize),
 }
 
-impl<T> Operation<T> for LevenshteinDamerauOp
-where
-    T: Eq,
-{
-    fn backtrack(
-        &self,
-        seq_pair: &SeqPair<T>,
-        source_idx: usize,
-        target_idx: usize,
-    ) -> Option<(usize, usize)> {
-        use self::LevenshteinDamerauOp::*;
-
-        match *self {
-            Delete(cost) => archetype::Delete(cost).backtrack(seq_pair, source_idx, target_idx),
-            Insert(cost) => archetype::Insert(cost).backtrack(seq_pair, source_idx, target_idx),
-            Match => archetype::Match.backtrack(seq_pair, source_idx, target_idx),
-            Substitute(cost) => {
-                archetype::Substitute(cost).backtrack(seq_pair, source_idx, target_idx)
-            }
-            Transpose(cost) => {
-                archetype::Transpose(cost).backtrack(seq_pair, source_idx, target_idx)
-            }
-        }
-    }
-
-    fn cost(
-        &self,
-        seq_pair: &SeqPair<T>,
-        cost_matrix: &Vec<Vec<usize>>,
-        source_idx: usize,
-        target_idx: usize,
-    ) -> Option<usize> {
-        use self::LevenshteinDamerauOp::*;
-
-        match *self {
-            Delete(cost) => {
-                archetype::Delete(cost).cost(seq_pair, cost_matrix, source_idx, target_idx)
-            }
-            Insert(cost) => {
-                archetype::Insert(cost).cost(seq_pair, cost_matrix, source_idx, target_idx)
-            }
-            Match => archetype::Match.cost(seq_pair, cost_matrix, source_idx, target_idx),
-            Substitute(cost) => {
-                archetype::Substitute(cost).cost(seq_pair, cost_matrix, source_idx, target_idx)
-            }
-            Transpose(cost) => {
-                archetype::Transpose(cost).cost(seq_pair, cost_matrix, source_idx, target_idx)
-            }
-        }
-    }
-}
+op_mapping!(LevenshteinDamerauOp, {
+    Delete(cost)     => archetype::Delete(cost),
+    Insert(cost)     => archetype::Insert(cost),
+    Match            => archetype::Match,
+    Substitute(cost) => archetype::Substitute(cost),
+    Transpose(cost)  => archetype::Transpose(cost)
+});
 
 /// Longest common subsequence (LCS) alignment.
 ///
@@ -259,45 +215,11 @@ pub enum LCSOp {
     Match,
 }
 
-impl<T> Operation<T> for LCSOp
-where
-    T: Eq,
-{
-    fn backtrack(
-        &self,
-        seq_pair: &SeqPair<T>,
-        source_idx: usize,
-        target_idx: usize,
-    ) -> Option<(usize, usize)> {
-        use self::LCSOp::*;
-
-        match *self {
-            Delete(cost) => archetype::Delete(cost).backtrack(seq_pair, source_idx, target_idx),
-            Insert(cost) => archetype::Insert(cost).backtrack(seq_pair, source_idx, target_idx),
-            Match => archetype::Match.backtrack(seq_pair, source_idx, target_idx),
-        }
-    }
-
-    fn cost(
-        &self,
-        seq_pair: &SeqPair<T>,
-        cost_matrix: &Vec<Vec<usize>>,
-        source_idx: usize,
-        target_idx: usize,
-    ) -> Option<usize> {
-        use self::LCSOp::*;
-
-        match *self {
-            Delete(cost) => {
-                archetype::Delete(cost).cost(seq_pair, cost_matrix, source_idx, target_idx)
-            }
-            Insert(cost) => {
-                archetype::Insert(cost).cost(seq_pair, cost_matrix, source_idx, target_idx)
-            }
-            Match => archetype::Match.cost(seq_pair, cost_matrix, source_idx, target_idx),
-        }
-    }
-}
+op_mapping!(LCSOp, {
+    Delete(cost)     => archetype::Delete(cost),
+    Insert(cost)     => archetype::Insert(cost),
+    Match            => archetype::Match
+});
 
 #[cfg(test)]
 mod tests {
