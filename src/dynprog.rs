@@ -1,6 +1,10 @@
 use {Measure, SeqPair};
 use op::{Backtrack, BestOperation, IndexedOperation, Operation};
 
+/// Trait enabling alignment of all `Measure`s.
+///
+/// This trait is used to implement alignment using dynamic programming
+/// for every type that implements the `Measure` trait.
 pub trait Align<'a, M, T>
 where
     M: Measure<T>,
