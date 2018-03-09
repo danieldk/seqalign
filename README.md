@@ -1,6 +1,6 @@
-![crates.io](https://img.shields.io/crates/v/seqalign.svg)
-![docs.rs](https://docs.rs/seqalign/badge.svg)
-![Travis CI](https://img.shields.io/travis/sfb833-a3/seqalign.svg)
+[![crates.io](https://img.shields.io/crates/v/seqalign.svg)](https://crates.io/crates/seqalign)
+[![docs.rs](https://docs.rs/seqalign/badge.svg)](https://docs.rs/seqalign/)
+[![Travis CI](https://img.shields.io/travis/sfb833-a3/seqalign.svg)](https://travis-ci.org/sfb833-a3/seqalign)
 
 # seqalign
 
