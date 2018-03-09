@@ -8,8 +8,10 @@ homepage = "https://github.com/sfb833-a3/seqalign"
 repository = "https://github.com/sfb833-a3/seqalign"
 license = "Apache-2.0"
 readme = "README.md"
-exclude = [
-  ".gitignore"
+include = [
+    "**/*.rs",
+    "Cargo.toml",
+    "README.md"
 ]
 
 [dependencies]
