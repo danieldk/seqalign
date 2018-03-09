@@ -1,5 +1,5 @@
-use {IndexedOperation, Measure, Operation, SeqPair};
-use op::{Backtrack, BestOperation};
+use {Measure, SeqPair};
+use op::{Backtrack, BestOperation, IndexedOperation, Operation};
 
 /// Edit distance cost matrix.
 pub struct CostMatrix<'a, M, T>
@@ -106,7 +106,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use IndexedOperation;
+    use op::IndexedOperation;
     use measures::Levenshtein;
     use measures::LevenshteinOp::*;
 

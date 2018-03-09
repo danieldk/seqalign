@@ -1,6 +1,10 @@
+//! Edit operations.
+
 use std::fmt::Debug;
 
 use {Measure, SeqPair};
+
+pub mod archetype;
 
 /// Trait for sequence edit operations.
 pub trait Operation<T>: Clone + Debug + Eq {
