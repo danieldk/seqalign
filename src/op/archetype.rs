@@ -159,7 +159,7 @@ impl<T> Operation<T> for Transpose {
         source_idx: usize,
         target_idx: usize,
     ) -> Option<(usize, usize)> {
-        if source_idx > 1 && target_idx > 1 {
+        if source_idx >= 2 && target_idx >= 2 {
             Some((source_idx - 2, target_idx - 2))
         } else {
             None
