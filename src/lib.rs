@@ -12,8 +12,6 @@
 //! # Example
 //!
 //! ```
-//! extern crate seqalign;
-//!
 //! use seqalign::Align;
 //! use seqalign::measures::LevenshteinDamerau;
 //!
