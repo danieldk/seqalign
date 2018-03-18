@@ -1,5 +1,5 @@
 use {Measure, SeqPair};
-use op::{Backtrack, BestOperation, IndexedOperation, Operation};
+use op::{Backtrack, BestCost, IndexedOperation, Operation};
 
 /// Trait enabling alignment of all `Measure`s.
 ///
@@ -35,18 +35,16 @@ where
         // Fill first row. This is separated from the rest of the matrix fill
         // because we do not want to fill cell [0][0].
         for target_idx in 1..target_len {
-            cost_matrix[0][target_idx] = self.best_operation(&pair, &cost_matrix, 0, target_idx)
-                .expect("No applicable operation")
-                .1;
+            cost_matrix[0][target_idx] = self.best_cost(&pair, &cost_matrix, 0, target_idx)
+                .expect("No applicable operation");
         }
 
         // Fill the matrix
         for source_idx in 1..source_len {
             for target_idx in 0..target_len {
                 cost_matrix[source_idx][target_idx] =
-                    self.best_operation(&pair, &cost_matrix, source_idx, target_idx)
-                        .expect("No applicable operation")
-                        .1;
+                    self.best_cost(&pair, &cost_matrix, source_idx, target_idx)
+                        .expect("No applicable operation");
             }
         }
 
