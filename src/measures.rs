@@ -2,6 +2,8 @@
 //!
 //! This module provides some predefined sequence distance measures.
 
+use ndarray::ArrayView2;
+
 use {Measure, SeqPair};
 use op::Operation;
 use op::archetype;
@@ -32,7 +34,7 @@ macro_rules! backtrack_fun {
 
 macro_rules! cost_fun {
     ( $op_type:ident, { $($variant:pat => $archetype:expr),* } ) => {
-        fn cost(&self, seq_pair: &SeqPair<T>, cost_matrix: &Vec<Vec<usize>>,
+        fn cost(&self, seq_pair: &SeqPair<T>, cost_matrix: ArrayView2<usize>,
                 source_idx: usize, target_idx: usize) -> Option<usize> {
             use self::$op_type::*;
 

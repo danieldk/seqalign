@@ -4,6 +4,8 @@
 //! not meant to be used directly, but can be used in the implementation
 //! of new measures.
 
+use ndarray::ArrayView2;
+
 use op::Operation;
 use SeqPair;
 
@@ -28,7 +30,7 @@ impl<T> Operation<T> for Delete {
     fn cost(
         &self,
         seq_pair: &SeqPair<T>,
-        cost_matrix: &Vec<Vec<usize>>,
+        cost_matrix: ArrayView2<usize>,
         source_idx: usize,
         target_idx: usize,
     ) -> Option<usize>
@@ -36,7 +38,7 @@ impl<T> Operation<T> for Delete {
         T: Eq,
     {
         let (from_source_idx, from_target_idx) = self.backtrack(seq_pair, source_idx, target_idx)?;
-        let orig_cost = cost_matrix[from_source_idx][from_target_idx];
+        let orig_cost = cost_matrix[(from_source_idx, from_target_idx)];
         Some(orig_cost + self.0)
     }
 }
@@ -62,7 +64,7 @@ impl<T> Operation<T> for Insert {
     fn cost(
         &self,
         seq_pair: &SeqPair<T>,
-        cost_matrix: &Vec<Vec<usize>>,
+        cost_matrix: ArrayView2<usize>,
         source_idx: usize,
         target_idx: usize,
     ) -> Option<usize>
@@ -70,7 +72,7 @@ impl<T> Operation<T> for Insert {
         T: Eq,
     {
         let (from_source_idx, from_target_idx) = self.backtrack(seq_pair, source_idx, target_idx)?;
-        let orig_cost = cost_matrix[from_source_idx][from_target_idx];
+        let orig_cost = cost_matrix[(from_source_idx, from_target_idx)];
         Some(orig_cost + self.0)
     }
 }
@@ -96,7 +98,7 @@ impl<T> Operation<T> for Match {
     fn cost(
         &self,
         seq_pair: &SeqPair<T>,
-        cost_matrix: &Vec<Vec<usize>>,
+        cost_matrix: ArrayView2<usize>,
         source_idx: usize,
         target_idx: usize,
     ) -> Option<usize>
@@ -104,7 +106,7 @@ impl<T> Operation<T> for Match {
         T: Eq,
     {
         let (from_source_idx, from_target_idx) = self.backtrack(seq_pair, source_idx, target_idx)?;
-        let orig_cost = cost_matrix[from_source_idx][from_target_idx];
+        let orig_cost = cost_matrix[(from_source_idx, from_target_idx)];
 
         if seq_pair.source[from_source_idx] == seq_pair.target[from_target_idx] {
             Some(orig_cost)
@@ -135,7 +137,7 @@ impl<T> Operation<T> for Substitute {
     fn cost(
         &self,
         seq_pair: &SeqPair<T>,
-        cost_matrix: &Vec<Vec<usize>>,
+        cost_matrix: ArrayView2<usize>,
         source_idx: usize,
         target_idx: usize,
     ) -> Option<usize>
@@ -143,7 +145,7 @@ impl<T> Operation<T> for Substitute {
         T: Eq,
     {
         let (from_source_idx, from_target_idx) = self.backtrack(seq_pair, source_idx, target_idx)?;
-        let orig_cost = cost_matrix[from_source_idx][from_target_idx];
+        let orig_cost = cost_matrix[(from_source_idx, from_target_idx)];
         Some(orig_cost + self.0)
     }
 }
@@ -169,7 +171,7 @@ impl<T> Operation<T> for Transpose {
     fn cost(
         &self,
         seq_pair: &SeqPair<T>,
-        cost_matrix: &Vec<Vec<usize>>,
+        cost_matrix: ArrayView2<usize>,
         source_idx: usize,
         target_idx: usize,
     ) -> Option<usize>
@@ -177,7 +179,7 @@ impl<T> Operation<T> for Transpose {
         T: Eq,
     {
         let (from_source_idx, from_target_idx) = self.backtrack(seq_pair, source_idx, target_idx)?;
-        let orig_cost = cost_matrix[from_source_idx][from_target_idx];
+        let orig_cost = cost_matrix[(from_source_idx, from_target_idx)];
 
         if seq_pair.source[from_source_idx] == seq_pair.target[from_target_idx + 1]
             && seq_pair.source[from_source_idx + 1] == seq_pair.target[from_target_idx]
