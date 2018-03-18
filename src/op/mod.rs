@@ -1,5 +1,6 @@
 //! Edit operations.
 
+use std::cmp;
 use std::fmt::Debug;
 
 use ndarray::ArrayView2;
@@ -131,21 +132,21 @@ where
     }
 }
 
-pub(crate) trait BestOperation<T> {
+pub(crate) trait BestCost<T> {
     type Operation: Operation<T>;
 
-    fn best_operation(
+    fn best_cost(
         &self,
         seq_pair: &SeqPair<T>,
         cost_matrix: ArrayView2<usize>,
         source_idx: usize,
         target_idx: usize,
-    ) -> Option<(Self::Operation, usize)>
+    ) -> Option<usize>
     where
         T: Eq;
 }
 
-impl<M, T> BestOperation<T> for M
+impl<M, T> BestCost<T> for M
 where
     M: Measure<T>,
 {
@@ -156,22 +157,26 @@ where
     /// Returns `None` if the operation cannot be applied. Otherwise, it
     /// returns the cost for the alignment at `source_idx`, `target_idx`
     /// using this operation.
-    fn best_operation(
+    fn best_cost(
         &self,
         seq_pair: &SeqPair<T>,
         cost_matrix: ArrayView2<usize>,
         source_idx: usize,
         target_idx: usize,
-    ) -> Option<(Self::Operation, usize)>
+    ) -> Option<usize>
     where
         T: Eq,
     {
-        self.operations()
-            .iter()
-            .filter_map(|op| {
-                op.cost(seq_pair, cost_matrix, source_idx, target_idx)
-                    .map(|cost| (op.clone(), cost))
-            })
-            .min_by_key(|&(_, cost)| cost)
+        // Used filter_map + min_by_key before, but the compiler is not able
+        // to optimize to a better loop.
+        let mut best = None;
+        for op in self.operations() {
+            if let Some(cost) = op.cost(seq_pair, cost_matrix, source_idx, target_idx) {
+                best = best.map(|best_cost| cmp::min(cost, best_cost))
+                    .or(Some(cost))
+            }
+        }
+
+        best
     }
 }
