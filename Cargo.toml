@@ -1,6 +1,6 @@
 [package]
 name = "seqalign"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Daniël de Kok <me@danieldk.eu>"]
 description = "Sequence alignment using edit operations"
 documentation = "https://docs.rs/seqalign/"
