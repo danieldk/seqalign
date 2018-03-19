@@ -4,7 +4,7 @@ extern crate rand;
 extern crate seqalign;
 extern crate test;
 
-use test::Bencher;
+use test::{black_box, Bencher};
 
 use rand::{weak_rng, Rng};
 use seqalign::{Align, Measure};
@@ -35,35 +35,42 @@ where
     (s1, s2)
 }
 
-fn distance_bench<M>(b: &mut Bencher, measure: M)
-where
-    M: Measure<char>,
-{
+#[inline(never)]
+fn random_pairs(n: usize) -> Vec<(Vec<char>, Vec<char>)> {
     let mut rng = weak_rng();
 
     let mut pairs = Vec::new();
-    for _ in 0..1000 {
+    for _ in 0..n {
         pairs.push(random_pair(&mut rng));
     }
 
+    pairs
+}
+
+fn distance_bench<M>(b: &mut Bencher, measure: M, n: usize)
+where
+    M: Measure<char>,
+{
+    let pairs = black_box(random_pairs(n));
+
     b.iter(move || {
         for &(ref s1, ref s2) in &pairs {
-            measure.align(s1, s2);
+            black_box(measure.align(s1, s2));
         }
     })
 }
 
 #[bench]
 fn lcs_distance_1000(b: &mut Bencher) {
-    distance_bench(b, LCS::new(1, 1));
+    distance_bench(b, LCS::new(1, 1), 1000);
 }
 
 #[bench]
 fn levenshtein_damerau_distance_1000(b: &mut Bencher) {
-    distance_bench(b, LevenshteinDamerau::new(1, 1, 1, 1));
+    distance_bench(b, LevenshteinDamerau::new(1, 1, 1, 1), 1000);
 }
 
 #[bench]
 fn levenshtein_distance_1000(b: &mut Bencher) {
-    distance_bench(b, Levenshtein::new(1, 1, 1));
+    distance_bench(b, Levenshtein::new(1, 1, 1), 1000);
 }
