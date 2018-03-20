@@ -104,10 +104,9 @@ impl<T> Operation<T> for Match {
         T: Eq,
     {
         let (from_source_idx, from_target_idx) = self.backtrack(seq_pair, source_idx, target_idx)?;
-        let orig_cost = cost_matrix[from_source_idx][from_target_idx];
 
         if seq_pair.source[from_source_idx] == seq_pair.target[from_target_idx] {
-            Some(orig_cost)
+            Some(cost_matrix[from_source_idx][from_target_idx])
         } else {
             None
         }
@@ -177,12 +176,11 @@ impl<T> Operation<T> for Transpose {
         T: Eq,
     {
         let (from_source_idx, from_target_idx) = self.backtrack(seq_pair, source_idx, target_idx)?;
-        let orig_cost = cost_matrix[from_source_idx][from_target_idx];
 
         if seq_pair.source[from_source_idx] == seq_pair.target[from_target_idx + 1]
             && seq_pair.source[from_source_idx + 1] == seq_pair.target[from_target_idx]
         {
-            Some(orig_cost + self.0)
+            Some(cost_matrix[from_source_idx][from_target_idx] + self.0)
         } else {
             None
         }
