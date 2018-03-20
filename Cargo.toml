@@ -20,4 +20,5 @@ include = [
 
 [dev-dependencies]
 lazy_static = "1.0"
+pretty_assertions = "0.5"
 rand = "0.4"

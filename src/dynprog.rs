@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use {Measure, SeqPair};
 use op::{Backtrack, BestCost, IndexedOperation, Operation};
 
@@ -78,7 +80,9 @@ where
     }
 
     /// Return the script of edit operations to rewrite the source sequence
-    /// to the target sequence.
+    /// to the target sequence. If there are multiple possible edit scripts,
+    /// this method will return one of the possible edit scripts. If you want
+    /// to retrieve all possible edit scripts, use the `edit_scripts` method.
     pub fn edit_script(&self) -> Vec<IndexedOperation<M::Operation>> {
         let mut source_idx = self.pair.source.len();
         let mut target_idx = self.pair.target.len();
@@ -108,6 +112,58 @@ where
         script
     }
 
+    /// Return all the edit scripts to rewrite the source sequence to the
+    /// target sequence. If you want just one edit script, use the
+    /// `edit_script` method instead.
+    pub fn edit_scripts(&self) -> Vec<Vec<IndexedOperation<M::Operation>>> {
+        // Find all scripts that lead to the lowest edit distance using
+        // breadth-first search.
+
+        // Start the search in the lower-right corner with the final cost.
+        let mut q: VecDeque<BacktrackState<M, T>> = VecDeque::new();
+        q.push_back(BacktrackState {
+            source_idx: self.pair.source.len(),
+            target_idx: self.pair.target.len(),
+            script: Vec::new(),
+        });
+
+        let mut scripts = Vec::new();
+        while let Some(BacktrackState {
+            source_idx,
+            target_idx,
+            script,
+        }) = q.pop_front()
+        {
+            // Process all operations/origins that can lead to the current cell's
+            // cost.
+            for op in self.measure
+                .backtracks(&self.pair, &self.cost_matrix, source_idx, target_idx)
+            {
+                let (new_source_idx, new_target_idx) =
+                    op.backtrack(&self.pair, source_idx, target_idx)
+                        .expect("Cannot backtrack");
+                let mut new_script = script.clone();
+
+                new_script.push(IndexedOperation::new(op, new_source_idx, new_target_idx));
+
+                if new_source_idx == 0 && new_target_idx == 0 {
+                    // If we are in the upper-left cell, we have a complete script.
+                    new_script.reverse();
+                    scripts.push(new_script);
+                } else {
+                    // Otherwise, add the state to the queue to explore later.
+                    q.push_back(BacktrackState {
+                        source_idx: new_source_idx,
+                        target_idx: new_target_idx,
+                        script: new_script,
+                    })
+                }
+            }
+        }
+
+        scripts
+    }
+
     /// Get the cost matrix.
     pub fn cost_matrix(&self) -> &Vec<Vec<usize>> {
         &self.cost_matrix
@@ -117,6 +173,15 @@ where
     pub fn seq_pair(&self) -> &SeqPair<T> {
         &self.pair
     }
+}
+
+struct BacktrackState<M, T>
+where
+    M: Measure<T>,
+{
+    source_idx: usize,
+    target_idx: usize,
+    script: Vec<IndexedOperation<M::Operation>>,
 }
 
 #[cfg(test)]
@@ -193,6 +258,73 @@ mod tests {
                 IndexedOperation::new(Insert(1), 9, 5),
             ],
             levenshtein.align(&pineapple, &applet).edit_script()
+        );
+    }
+
+    #[test]
+    fn edit_script_tests() {
+        let applet: Vec<char> = "applet".chars().collect();
+        let pineapple: Vec<char> = "pineapple".chars().collect();
+        let aplpet: Vec<char> = "aplpet".chars().collect();
+
+        let levenshtein = Levenshtein::new(1, 1, 1);
+        assert_eq!(
+            vec![
+                vec![
+                    IndexedOperation::new(Delete(1), 0, 0),
+                    IndexedOperation::new(Delete(1), 1, 0),
+                    IndexedOperation::new(Delete(1), 2, 0),
+                    IndexedOperation::new(Delete(1), 3, 0),
+                    IndexedOperation::new(Match, 4, 0),
+                    IndexedOperation::new(Match, 5, 1),
+                    IndexedOperation::new(Match, 6, 2),
+                    IndexedOperation::new(Match, 7, 3),
+                    IndexedOperation::new(Match, 8, 4),
+                    IndexedOperation::new(Insert(1), 9, 5),
+                ],
+            ],
+            levenshtein.align(&pineapple, &applet).edit_scripts()
+        );
+
+        assert_eq!(
+            vec![
+                vec![
+                    IndexedOperation::new(Match, 0, 0),
+                    IndexedOperation::new(Match, 1, 1),
+                    IndexedOperation::new(Substitute(1), 2, 2),
+                    IndexedOperation::new(Substitute(1), 3, 3),
+                    IndexedOperation::new(Match, 4, 4),
+                    IndexedOperation::new(Match, 5, 5),
+                ],
+                vec![
+                    IndexedOperation::new(Match, 0, 0),
+                    IndexedOperation::new(Match, 1, 1),
+                    IndexedOperation::new(Delete(1), 2, 2),
+                    IndexedOperation::new(Match, 3, 2),
+                    IndexedOperation::new(Insert(1), 4, 3),
+                    IndexedOperation::new(Match, 4, 4),
+                    IndexedOperation::new(Match, 5, 5),
+                ],
+                vec![
+                    IndexedOperation::new(Match, 0, 0),
+                    IndexedOperation::new(Delete(1), 1, 1),
+                    IndexedOperation::new(Match, 2, 1),
+                    IndexedOperation::new(Match, 3, 2),
+                    IndexedOperation::new(Insert(1), 4, 3),
+                    IndexedOperation::new(Match, 4, 4),
+                    IndexedOperation::new(Match, 5, 5),
+                ],
+                vec![
+                    IndexedOperation::new(Match, 0, 0),
+                    IndexedOperation::new(Match, 1, 1),
+                    IndexedOperation::new(Insert(1), 2, 2),
+                    IndexedOperation::new(Match, 2, 3),
+                    IndexedOperation::new(Delete(1), 3, 4),
+                    IndexedOperation::new(Match, 4, 4),
+                    IndexedOperation::new(Match, 5, 5),
+                ],
+            ],
+            levenshtein.align(&applet, &aplpet).edit_scripts()
         );
     }
 
