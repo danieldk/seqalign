@@ -87,7 +87,7 @@ where
 }
 
 /// Levenshtein operation with associated cost.
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum LevenshteinOp {
     Insert(usize),
     Delete(usize),
@@ -151,7 +151,7 @@ where
 }
 
 /// Levenshtein operation with associated cost.
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum LevenshteinDamerauOp {
     Insert(usize),
     Delete(usize),
@@ -208,7 +208,7 @@ where
 }
 
 /// Levenshtein operation with associated cost.
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum LCSOp {
     Insert(usize),
     Delete(usize),
