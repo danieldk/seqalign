@@ -2,13 +2,14 @@
 
 use std::cmp;
 use std::fmt::Debug;
+use std::hash::Hash;
 
 use {Measure, SeqPair};
 
 pub mod archetype;
 
 /// Trait for sequence edit operations.
-pub trait Operation<T>: Clone + Debug + Eq {
+pub trait Operation<T>: Clone + Debug + Eq + Hash {
     /// Return the cell after backtracking from the given cell with this operation.
     ///
     /// Must return `None` if backtracking is not possible (e.g. would lead
@@ -51,7 +52,7 @@ pub trait Operation<T>: Clone + Debug + Eq {
 ///
 /// Tells us that indices 1/2, 3/7, and 4/10 of the source/target sequence
 /// were aligned.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct IndexedOperation<O>
 where
     O: Debug,

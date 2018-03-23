@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::{HashSet, VecDeque};
 
 use {Measure, SeqPair};
 use op::{Backtrack, BestCost, IndexedOperation, Operation};
@@ -115,7 +115,7 @@ where
     /// Return all the edit scripts to rewrite the source sequence to the
     /// target sequence. If you want just one edit script, use the
     /// `edit_script` method instead.
-    pub fn edit_scripts(&self) -> Vec<Vec<IndexedOperation<M::Operation>>> {
+    pub fn edit_scripts(&self) -> HashSet<Vec<IndexedOperation<M::Operation>>> {
         // Find all scripts that lead to the lowest edit distance using
         // breadth-first search.
 
@@ -127,7 +127,7 @@ where
             script: Vec::new(),
         });
 
-        let mut scripts = Vec::new();
+        let mut scripts = HashSet::new();
         while let Some(BacktrackState {
             source_idx,
             target_idx,
@@ -149,7 +149,7 @@ where
                 if new_source_idx == 0 && new_target_idx == 0 {
                     // If we are in the upper-left cell, we have a complete script.
                     new_script.reverse();
-                    scripts.push(new_script);
+                    scripts.insert(new_script);
                 } else {
                     // Otherwise, add the state to the queue to explore later.
                     q.push_back(BacktrackState {
@@ -269,7 +269,7 @@ mod tests {
 
         let levenshtein = Levenshtein::new(1, 1, 1);
         assert_eq!(
-            vec![
+            hashset![
                 vec![
                     IndexedOperation::new(Delete(1), 0, 0),
                     IndexedOperation::new(Delete(1), 1, 0),
@@ -287,7 +287,7 @@ mod tests {
         );
 
         assert_eq!(
-            vec![
+            hashset![
                 vec![
                     IndexedOperation::new(Match, 0, 0),
                     IndexedOperation::new(Match, 1, 1),

@@ -8,7 +8,7 @@ use op::Operation;
 use SeqPair;
 
 /// Delete operation with associated cost.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Delete(pub usize);
 
 impl<T> Operation<T> for Delete {
@@ -42,7 +42,7 @@ impl<T> Operation<T> for Delete {
 }
 
 /// Insert operation with associated cost.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Insert(pub usize);
 
 impl<T> Operation<T> for Insert {
@@ -76,7 +76,7 @@ impl<T> Operation<T> for Insert {
 }
 
 /// Match operation.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Match;
 
 impl<T> Operation<T> for Match {
@@ -114,7 +114,7 @@ impl<T> Operation<T> for Match {
 }
 
 /// Substitute operation with associated cost.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Substitute(pub usize);
 
 impl<T> Operation<T> for Substitute {
@@ -148,7 +148,7 @@ impl<T> Operation<T> for Substitute {
 }
 
 /// Transpose operation with associated cost.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Transpose(pub usize);
 
 impl<T> Operation<T> for Transpose {
