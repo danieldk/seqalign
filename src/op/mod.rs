@@ -118,7 +118,7 @@ where
     type Operation = M::Operation;
 
     /// Give the operation that was used to construct the cost matrix cell
-    /// at (`source_idx`, `taget_idx`).
+    /// at (`source_idx`, `target_idx`).
     fn backtrack(
         &self,
         seq_pair: &SeqPair<T>,
