@@ -40,6 +40,14 @@
 #[macro_use]
 extern crate lazy_static;
 
+#[cfg(test)]
+#[macro_use]
+extern crate maplit;
+
+#[cfg(test)]
+#[macro_use]
+extern crate pretty_assertions;
+
 mod dynprog;
 pub use dynprog::{Align, Alignment};
 

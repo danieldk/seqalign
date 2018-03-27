@@ -2,13 +2,14 @@
 
 use std::cmp;
 use std::fmt::Debug;
+use std::hash::Hash;
 
 use {Measure, SeqPair};
 
 pub mod archetype;
 
 /// Trait for sequence edit operations.
-pub trait Operation<T>: Clone + Debug + Eq {
+pub trait Operation<T>: Clone + Debug + Eq + Hash {
     /// Return the cell after backtracking from the given cell with this operation.
     ///
     /// Must return `None` if backtracking is not possible (e.g. would lead
@@ -51,7 +52,7 @@ pub trait Operation<T>: Clone + Debug + Eq {
 ///
 /// Tells us that indices 1/2, 3/7, and 4/10 of the source/target sequence
 /// were aligned.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct IndexedOperation<O>
 where
     O: Debug,
@@ -98,6 +99,16 @@ pub(crate) trait Backtrack<T> {
     ) -> Option<Self::Operation>
     where
         T: Eq;
+
+    fn backtracks(
+        &self,
+        seq_pair: &SeqPair<T>,
+        cost_matrix: &Vec<Vec<usize>>,
+        source_idx: usize,
+        target_idx: usize,
+    ) -> Vec<Self::Operation>
+    where
+        T: Eq;
 }
 
 impl<M, T> Backtrack<T> for M
@@ -107,7 +118,7 @@ where
     type Operation = M::Operation;
 
     /// Give the operation that was used to construct the cost matrix cell
-    /// at (`source_idx`, `taget_idx`).
+    /// at (`source_idx`, `target_idx`).
     fn backtrack(
         &self,
         seq_pair: &SeqPair<T>,
@@ -127,6 +138,31 @@ where
         }
 
         None
+    }
+
+    /// Give the operations that were used to construct the cost matrix cell
+    /// at (`source_idx`, `taget_idx`).
+    fn backtracks(
+        &self,
+        seq_pair: &SeqPair<T>,
+        cost_matrix: &Vec<Vec<usize>>,
+        source_idx: usize,
+        target_idx: usize,
+    ) -> Vec<Self::Operation>
+    where
+        T: Eq,
+    {
+        let mut ops = Vec::new();
+
+        for op in self.operations() {
+            if let Some(cost) = op.cost(seq_pair, cost_matrix, source_idx, target_idx) {
+                if cost == cost_matrix[source_idx][target_idx] {
+                    ops.push(op.clone());
+                }
+            }
+        }
+
+        ops
     }
 }
 
