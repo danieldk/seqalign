@@ -161,6 +161,8 @@ where
             }
         }
 
+        assert!(!scripts.is_empty(), "Cannot backtrack to cell 0, 0");
+
         scripts
     }
 
