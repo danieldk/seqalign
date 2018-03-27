@@ -326,6 +326,20 @@ mod tests {
             ],
             levenshtein.align(&applet, &aplpet).edit_scripts()
         );
+
+        assert_eq!(
+            hashset![
+                vec![
+                    IndexedOperation::new(Match, 0, 0),
+                    IndexedOperation::new(Match, 1, 1),
+                    IndexedOperation::new(Match, 2, 2),
+                    IndexedOperation::new(Match, 3, 3),
+                    IndexedOperation::new(Match, 4, 4),
+                    IndexedOperation::new(Match, 5, 5),
+                ]
+            ],
+            levenshtein.align(&applet, &applet).edit_scripts()
+        );
     }
 
     #[test]
