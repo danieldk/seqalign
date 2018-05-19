@@ -1,6 +1,6 @@
 [package]
 name = "seqalign"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["Daniël de Kok <me@danieldk.eu>"]
 description = "Sequence alignment using edit operations"
 documentation = "https://docs.rs/seqalign/"
@@ -19,7 +19,7 @@ include = [
 [dependencies]
 
 [dev-dependencies]
-lazy_static = "1.0"
+lazy_static = "1"
 maplit = "1"
 pretty_assertions = "0.5"
 rand = "0.4"
