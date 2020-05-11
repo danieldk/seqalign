@@ -1,7 +1,7 @@
 use std::collections::{HashSet, VecDeque};
 
-use crate::{Measure, SeqPair};
 use crate::op::{Backtrack, BestCost, IndexedOperation, Operation};
+use crate::{Measure, SeqPair};
 
 /// Trait enabling alignment of all `Measure`s.
 ///
@@ -24,10 +24,7 @@ where
     T: Eq,
 {
     fn align(&'a self, source: &'a [T], target: &'a [T]) -> Alignment<'a, M, T> {
-        let pair = SeqPair {
-            source: source.as_ref(),
-            target: target.as_ref(),
-        };
+        let pair = SeqPair { source, target };
 
         let source_len = pair.source.len() + 1;
         let target_len = pair.target.len() + 1;
@@ -37,16 +34,17 @@ where
         // Fill first row. This is separated from the rest of the matrix fill
         // because we do not want to fill cell [0][0].
         for target_idx in 1..target_len {
-            cost_matrix[0][target_idx] = self.best_cost(&pair, &cost_matrix, 0, target_idx)
+            cost_matrix[0][target_idx] = self
+                .best_cost(&pair, &cost_matrix, 0, target_idx)
                 .expect("No applicable operation");
         }
 
         // Fill the matrix
         for source_idx in 1..source_len {
             for target_idx in 0..target_len {
-                cost_matrix[source_idx][target_idx] =
-                    self.best_cost(&pair, &cost_matrix, source_idx, target_idx)
-                        .expect("No applicable operation");
+                cost_matrix[source_idx][target_idx] = self
+                    .best_cost(&pair, &cost_matrix, source_idx, target_idx)
+                    .expect("No applicable operation");
             }
         }
 
@@ -61,8 +59,8 @@ where
 /// Edit distance cost matrix.
 pub struct Alignment<'a, M, T>
 where
-    M: 'a + Measure<T>,
-    T: 'a + Eq,
+    M: Measure<T>,
+    T: Eq,
 {
     measure: &'a M,
     pair: SeqPair<'a, T>,
@@ -92,7 +90,8 @@ where
             self.measure
                 .backtrack(&self.pair, &self.cost_matrix, source_idx, target_idx)
         {
-            let (new_source_idx, new_target_idx) = op.backtrack(&self.pair, source_idx, target_idx)
+            let (new_source_idx, new_target_idx) = op
+                .backtrack(&self.pair, source_idx, target_idx)
                 .expect("Cannot backtrack");
             source_idx = new_source_idx;
             target_idx = new_target_idx;
@@ -136,12 +135,13 @@ where
         {
             // Process all operations/origins that can lead to the current cell's
             // cost.
-            for op in self.measure
+            for op in self
+                .measure
                 .backtracks(&self.pair, &self.cost_matrix, source_idx, target_idx)
             {
-                let (new_source_idx, new_target_idx) =
-                    op.backtrack(&self.pair, source_idx, target_idx)
-                        .expect("Cannot backtrack");
+                let (new_source_idx, new_target_idx) = op
+                    .backtrack(&self.pair, source_idx, target_idx)
+                    .expect("Cannot backtrack");
                 let mut new_script = script.clone();
 
                 new_script.push(IndexedOperation::new(op, new_source_idx, new_target_idx));
@@ -188,9 +188,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::op::IndexedOperation;
     use crate::measures::Levenshtein;
     use crate::measures::LevenshteinOp::*;
+    use crate::op::IndexedOperation;
 
     use super::Align;
 
@@ -271,20 +271,18 @@ mod tests {
 
         let levenshtein = Levenshtein::new(1, 1, 1);
         assert_eq!(
-            hashset![
-                vec![
-                    IndexedOperation::new(Delete(1), 0, 0),
-                    IndexedOperation::new(Delete(1), 1, 0),
-                    IndexedOperation::new(Delete(1), 2, 0),
-                    IndexedOperation::new(Delete(1), 3, 0),
-                    IndexedOperation::new(Match, 4, 0),
-                    IndexedOperation::new(Match, 5, 1),
-                    IndexedOperation::new(Match, 6, 2),
-                    IndexedOperation::new(Match, 7, 3),
-                    IndexedOperation::new(Match, 8, 4),
-                    IndexedOperation::new(Insert(1), 9, 5),
-                ],
-            ],
+            hashset![vec![
+                IndexedOperation::new(Delete(1), 0, 0),
+                IndexedOperation::new(Delete(1), 1, 0),
+                IndexedOperation::new(Delete(1), 2, 0),
+                IndexedOperation::new(Delete(1), 3, 0),
+                IndexedOperation::new(Match, 4, 0),
+                IndexedOperation::new(Match, 5, 1),
+                IndexedOperation::new(Match, 6, 2),
+                IndexedOperation::new(Match, 7, 3),
+                IndexedOperation::new(Match, 8, 4),
+                IndexedOperation::new(Insert(1), 9, 5),
+            ],],
             levenshtein.align(&pineapple, &applet).edit_scripts()
         );
 
@@ -330,16 +328,14 @@ mod tests {
         );
 
         assert_eq!(
-            hashset![
-                vec![
-                    IndexedOperation::new(Match, 0, 0),
-                    IndexedOperation::new(Match, 1, 1),
-                    IndexedOperation::new(Match, 2, 2),
-                    IndexedOperation::new(Match, 3, 3),
-                    IndexedOperation::new(Match, 4, 4),
-                    IndexedOperation::new(Match, 5, 5),
-                ]
-            ],
+            hashset![vec![
+                IndexedOperation::new(Match, 0, 0),
+                IndexedOperation::new(Match, 1, 1),
+                IndexedOperation::new(Match, 2, 2),
+                IndexedOperation::new(Match, 3, 3),
+                IndexedOperation::new(Match, 4, 4),
+                IndexedOperation::new(Match, 5, 5),
+            ]],
             levenshtein.align(&applet, &applet).edit_scripts()
         );
     }

@@ -29,10 +29,10 @@
 //! use seqalign::op::IndexedOperation;
 //!
 //! assert_eq!(vec![
-//!   	IndexedOperation::new(LevenshteinDamerauOp::Match, 0, 0),
-//!   	IndexedOperation::new(LevenshteinDamerauOp::Transpose(1), 1, 1),
-//!   	IndexedOperation::new(LevenshteinDamerauOp::Match, 3, 3),
-//!   	IndexedOperation::new(LevenshteinDamerauOp::Insert(1), 4, 4)
+//!     IndexedOperation::new(LevenshteinDamerauOp::Match, 0, 0),
+//!     IndexedOperation::new(LevenshteinDamerauOp::Transpose(1), 1, 1),
+//!     IndexedOperation::new(LevenshteinDamerauOp::Match, 3, 3),
+//!     IndexedOperation::new(LevenshteinDamerauOp::Insert(1), 4, 4)
 //!   ], alignment.edit_script());
 //! ```
 
@@ -66,10 +66,7 @@ pub trait Measure<T> {
 }
 
 /// A pairing of two sequences.
-pub struct SeqPair<'a, T>
-where
-    T: 'a,
-{
+pub struct SeqPair<'a, T> {
     pub source: &'a [T],
     pub target: &'a [T],
 }

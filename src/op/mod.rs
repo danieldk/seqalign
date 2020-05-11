@@ -30,7 +30,7 @@ pub trait Operation<T>: Clone + Debug + Eq + Hash {
     fn cost(
         &self,
         seq_pair: &SeqPair<T>,
-        cost_matrix: &Vec<Vec<usize>>,
+        cost_matrix: &[Vec<usize>],
         source_idx: usize,
         target_idx: usize,
     ) -> Option<usize>
@@ -206,7 +206,8 @@ where
         let mut best = None;
         for op in self.operations() {
             if let Some(cost) = op.cost(seq_pair, cost_matrix, source_idx, target_idx) {
-                best = best.map(|best_cost| cmp::min(cost, best_cost))
+                best = best
+                    .map(|best_cost| cmp::min(cost, best_cost))
                     .or(Some(cost))
             }
         }
