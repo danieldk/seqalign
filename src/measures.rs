@@ -2,9 +2,9 @@
 //!
 //! This module provides some predefined sequence distance measures.
 
-use {Measure, SeqPair};
-use op::Operation;
-use op::archetype;
+use crate::{Measure, SeqPair};
+use crate::op::Operation;
+use crate::op::archetype;
 
 macro_rules! op_mapping {
     ( $op_type:ident, $mapping:tt ) => {
@@ -223,10 +223,10 @@ op_mapping!(LCSOp, {
 
 #[cfg(test)]
 mod tests {
-    use Measure;
-    use measures::{Levenshtein, LevenshteinDamerau, LCS};
+    use crate::Measure;
+    use crate::measures::{Levenshtein, LevenshteinDamerau, LCS};
 
-    use Align;
+    use crate::Align;
 
     struct TestCase {
         source: &'static str,

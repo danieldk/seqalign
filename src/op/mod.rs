@@ -4,7 +4,7 @@ use std::cmp;
 use std::fmt::Debug;
 use std::hash::Hash;
 
-use {Measure, SeqPair};
+use crate::{Measure, SeqPair};
 
 pub mod archetype;
 
