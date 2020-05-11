@@ -1,14 +1,10 @@
 #![feature(test)]
 
-extern crate rand;
-extern crate seqalign;
-extern crate test;
-
 use test::{black_box, Bencher};
 
 use rand::{weak_rng, Rng};
-use seqalign::{Align, Measure};
 use seqalign::measures::{Levenshtein, LevenshteinDamerau, LCS};
+use seqalign::{Align, Measure};
 
 static BENCH_ALPHABET: &[char] = &['a', 'b', 'c', 'd', 'e'];
 

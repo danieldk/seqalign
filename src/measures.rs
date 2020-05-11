@@ -2,13 +2,16 @@
 //!
 //! This module provides some predefined sequence distance measures.
 
-use crate::{Measure, SeqPair};
-use crate::op::Operation;
 use crate::op::archetype;
+use crate::op::Operation;
+use crate::{Measure, SeqPair};
 
 macro_rules! op_mapping {
     ( $op_type:ident, $mapping:tt ) => {
-        impl<T> Operation<T> for $op_type where T: Eq {
+        impl<T> Operation<T> for $op_type
+        where
+            T: Eq,
+        {
             cost_fun!($op_type, $mapping);
             backtrack_fun!($op_type, $mapping);
         }
@@ -32,7 +35,7 @@ macro_rules! backtrack_fun {
 
 macro_rules! cost_fun {
     ( $op_type:ident, { $($variant:pat => $archetype:expr),* } ) => {
-        fn cost(&self, seq_pair: &SeqPair<T>, cost_matrix: &Vec<Vec<usize>>,
+        fn cost(&self, seq_pair: &SeqPair<T>, cost_matrix: &[Vec<usize>],
                 source_idx: usize, target_idx: usize) -> Option<usize> {
             use self::$op_type::*;
 
@@ -223,8 +226,8 @@ op_mapping!(LCSOp, {
 
 #[cfg(test)]
 mod tests {
-    use crate::Measure;
     use crate::measures::{Levenshtein, LevenshteinDamerau, LCS};
+    use crate::Measure;
 
     use crate::Align;
 
@@ -303,5 +306,4 @@ mod tests {
             )
         }
     }
-
 }
