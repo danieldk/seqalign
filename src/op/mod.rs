@@ -93,7 +93,7 @@ pub(crate) trait Backtrack<T> {
     fn backtrack(
         &self,
         seq_pair: &SeqPair<T>,
-        cost_matrix: &Vec<Vec<usize>>,
+        cost_matrix: &[Vec<usize>],
         source_idx: usize,
         target_idx: usize,
     ) -> Option<Self::Operation>
@@ -103,7 +103,7 @@ pub(crate) trait Backtrack<T> {
     fn backtracks(
         &self,
         seq_pair: &SeqPair<T>,
-        cost_matrix: &Vec<Vec<usize>>,
+        cost_matrix: &[Vec<usize>],
         source_idx: usize,
         target_idx: usize,
     ) -> Vec<Self::Operation>
@@ -122,7 +122,7 @@ where
     fn backtrack(
         &self,
         seq_pair: &SeqPair<T>,
-        cost_matrix: &Vec<Vec<usize>>,
+        cost_matrix: &[Vec<usize>],
         source_idx: usize,
         target_idx: usize,
     ) -> Option<Self::Operation>
@@ -145,7 +145,7 @@ where
     fn backtracks(
         &self,
         seq_pair: &SeqPair<T>,
-        cost_matrix: &Vec<Vec<usize>>,
+        cost_matrix: &[Vec<usize>],
         source_idx: usize,
         target_idx: usize,
     ) -> Vec<Self::Operation>
@@ -172,7 +172,7 @@ pub(crate) trait BestCost<T> {
     fn best_cost(
         &self,
         seq_pair: &SeqPair<T>,
-        cost_matrix: &Vec<Vec<usize>>,
+        cost_matrix: &[Vec<usize>],
         source_idx: usize,
         target_idx: usize,
     ) -> Option<usize>
@@ -194,7 +194,7 @@ where
     fn best_cost(
         &self,
         seq_pair: &SeqPair<T>,
-        cost_matrix: &Vec<Vec<usize>>,
+        cost_matrix: &[Vec<usize>],
         source_idx: usize,
         target_idx: usize,
     ) -> Option<usize>
