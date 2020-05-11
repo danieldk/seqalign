@@ -49,7 +49,7 @@ extern crate maplit;
 extern crate pretty_assertions;
 
 mod dynprog;
-pub use dynprog::{Align, Alignment};
+pub use crate::dynprog::{Align, Alignment};
 
 pub mod measures;
 

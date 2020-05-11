@@ -1,7 +1,7 @@
 use std::collections::{HashSet, VecDeque};
 
-use {Measure, SeqPair};
-use op::{Backtrack, BestCost, IndexedOperation, Operation};
+use crate::{Measure, SeqPair};
+use crate::op::{Backtrack, BestCost, IndexedOperation, Operation};
 
 /// Trait enabling alignment of all `Measure`s.
 ///
@@ -188,9 +188,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use op::IndexedOperation;
-    use measures::Levenshtein;
-    use measures::LevenshteinOp::*;
+    use crate::op::IndexedOperation;
+    use crate::measures::Levenshtein;
+    use crate::measures::LevenshteinOp::*;
 
     use super::Align;
 

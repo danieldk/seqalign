@@ -4,8 +4,8 @@
 //! not meant to be used directly, but can be used in the implementation
 //! of new measures.
 
-use op::Operation;
-use SeqPair;
+use crate::op::Operation;
+use crate::SeqPair;
 
 /// Delete operation with associated cost.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
