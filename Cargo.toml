@@ -23,4 +23,4 @@ include = [
 lazy_static = "1"
 maplit = "1"
 pretty_assertions = "0.5"
-rand = "0.4"
+rand = "0.8"
