@@ -7,12 +7,13 @@ description = "Sequence alignment using edit operations"
 documentation = "https://docs.rs/seqalign/"
 homepage = "https://github.com/danieldk/seqalign"
 repository = "https://github.com/danieldk/seqalign"
-license = "Apache-2.0"
+license = "MIT OR Apache-2.0"
 readme = "README.md"
 include = [
     "**/*.rs",
     "Cargo.toml",
-    "LICENSE",
+    "LICENSE-APACHE",
+    "LICENSE-MIT",
     "NOTICE",
     "README.md"
 ]
