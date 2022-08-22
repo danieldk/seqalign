@@ -62,7 +62,7 @@ where
     target_idx: usize,
 }
 
-impl<'a, O> IndexedOperation<O>
+impl<O> IndexedOperation<O>
 where
     O: Debug,
 {
